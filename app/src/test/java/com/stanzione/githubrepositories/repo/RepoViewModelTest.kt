@@ -2,6 +2,9 @@ package com.stanzione.githubrepositories.repo
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.stanzione.githubrepositories.R
+import com.stanzione.githubrepositories.model.Owner
+import com.stanzione.githubrepositories.model.Repo
+import com.stanzione.githubrepositories.model.RepoResponse
 import io.reactivex.Scheduler
 import io.reactivex.Single
 import io.reactivex.android.plugins.RxAndroidPlugins
@@ -25,7 +28,31 @@ class RepoViewModelTest {
     @Mock
     lateinit var mockRepoRepository: RepoRepository
 
+    @Mock
+    lateinit var mockRepoMapper: RepoMapper
+
     private lateinit var viewModel: RepoViewModel
+
+    private var repoResponse: RepoResponse
+
+    init {
+        val repoList = mutableListOf<Repo>()
+        repoList.add(
+            Repo(
+                1,
+                "Name",
+                2,
+                3,
+                Owner(
+                    1,
+                    "Owner",
+                    "url"
+                )
+            )
+        )
+
+        repoResponse = RepoResponse(repoList)
+    }
 
     companion object {
         @BeforeClass
@@ -63,7 +90,7 @@ class RepoViewModelTest {
     @Before
     fun setUp() {
         MockitoAnnotations.initMocks(this)
-        viewModel = RepoViewModel(mockRepoRepository)
+        viewModel = RepoViewModel(mockRepoRepository, mockRepoMapper)
     }
 
     @Test
@@ -74,8 +101,10 @@ class RepoViewModelTest {
 
         assertEquals(false, viewModel.viewState.value?.isLoading)
         assertEquals(R.string.message_network_error, viewModel.viewState.value?.errorMessage)
+        assertNull(viewModel.viewState.value?.repoList)
+
         verify(mockRepoRepository, times(1)).getRepositories()
-        verifyNoMoreInteractions(mockRepoRepository)
+        verifyNoMoreInteractions(mockRepoRepository, mockRepoMapper)
     }
 
     @Test
@@ -86,8 +115,26 @@ class RepoViewModelTest {
 
         assertEquals(false, viewModel.viewState.value?.isLoading)
         assertEquals(R.string.message_general_error, viewModel.viewState.value?.errorMessage)
+        assertNull(viewModel.viewState.value?.repoList)
+
         verify(mockRepoRepository, times(1)).getRepositories()
-        verifyNoMoreInteractions(mockRepoRepository)
+        verifyNoMoreInteractions(mockRepoRepository, mockRepoMapper)
+    }
+
+    @Test
+    fun `given model with repo list and map done, when get repositories, show repo list`() {
+        `when`(mockRepoRepository.getRepositories()).thenReturn(Single.just(repoResponse))
+        `when`(mockRepoMapper.transform(repoResponse.repoList)).thenReturn(listOf())
+
+        viewModel.getRepositories()
+
+        assertEquals(false, viewModel.viewState.value?.isLoading)
+        assertNull(viewModel.viewState.value?.errorMessage)
+        assertNotNull(viewModel.viewState.value?.repoList)
+
+        verify(mockRepoRepository, times(1)).getRepositories()
+        verify(mockRepoMapper, times(1)).transform(repoResponse.repoList)
+        verifyNoMoreInteractions(mockRepoRepository, mockRepoMapper)
     }
 
 }
