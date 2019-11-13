@@ -17,6 +17,9 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import okio.Okio
+import androidx.test.InstrumentationRegistry
+import com.stanzione.githubrepositories.RecyclerViewItemCountAssertion
 
 class RepoActivityTest {
 
@@ -89,6 +92,33 @@ class RepoActivityTest {
 
         onView(allOf(withId(com.google.android.material.R.id.snackbar_text), withText(R.string.message_network_error)))
             .check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun givenResponseOk_WhenGetRepositories_ShowRepoList() {
+
+        println("server: $server")
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setBody(readFile("mock_repo_result.json"))
+        )
+
+        activityRule.launchActivity(Intent())
+
+        onView(withId(R.id.repo_recycler_view))
+            .check(RecyclerViewItemCountAssertion(3))
+    }
+
+    private fun readFile(fileName: String): String {
+        val stream = InstrumentationRegistry.getContext()
+            .assets
+            .open(fileName)
+
+        val source = Okio.source(stream)
+        val buffer = Okio.buffer(source)
+
+        return buffer.readUtf8()
     }
 
 }

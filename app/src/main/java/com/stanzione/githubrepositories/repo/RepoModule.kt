@@ -14,4 +14,10 @@ class RepoModule {
         return GithubRepoRepository(api)
     }
 
+    @Provides
+    @Singleton
+    fun getRepoMapper(): RepoMapper {
+        return RepoMapper()
+    }
+
 }

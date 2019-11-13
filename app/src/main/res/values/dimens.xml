@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="item_repo_icon_default_size">24dp</dimen>
+    <dimen name="item_repo_default_vertical_margin">4dp</dimen>
+    <dimen name="item_repo_default_horizontal_margin">4dp</dimen>
+</resources>

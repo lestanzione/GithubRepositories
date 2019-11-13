@@ -10,9 +10,13 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import java.io.IOException
 import com.jakewharton.retrofit2.adapter.rxjava2.HttpException
+import com.stanzione.githubrepositories.model.domain.RepoDomain
 
 
-class RepoViewModel(private val repoRepository: RepoRepository) : ViewModel() {
+class RepoViewModel(
+    private val repoRepository: RepoRepository,
+    private val repoMapper: RepoMapper
+) : ViewModel() {
 
     private val compositeDisposable = CompositeDisposable()
 
@@ -30,24 +34,26 @@ class RepoViewModel(private val repoRepository: RepoRepository) : ViewModel() {
 
         compositeDisposable.add(
             repoRepository.getRepositories()
+                .map {
+                    return@map repoMapper.transform(it.repoList)
+                }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                    { onRepoResponseReceived(it) },
+                    { onRepoDomainListReceived(it) },
                     { onRepoResponseError(it) }
                 )
         )
 
     }
 
-    private fun onRepoResponseReceived(repoResponse: RepoResponse) {
-        println("repoResponse: $repoResponse")
-        _viewState.value = currentViewState().copy(isLoading = false)
+    private fun onRepoDomainListReceived(repoDomainList: List<RepoDomain>) {
+        _viewState.value = currentViewState().copy(isLoading = false, repoList = repoDomainList)
     }
 
     private fun onRepoResponseError(throwable: Throwable) {
         println("Error: $throwable")
-        val messageRes = when(throwable) {
+        val messageRes = when (throwable) {
             is IOException -> R.string.message_network_error
             else -> {
                 if ((throwable as? HttpException)?.code() == 422) {

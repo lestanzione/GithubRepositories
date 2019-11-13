@@ -20,6 +20,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    androidExtensions {
+        experimental = true
+    }
 }
 
 dependencies {
@@ -34,6 +37,7 @@ dependencies {
     implementation 'android.arch.lifecycle:extensions:1.1.1'
     kapt 'android.arch.lifecycle:compiler:1.1.1'
 
+    implementation 'com.squareup.picasso:picasso:2.5.2'
     implementation 'com.squareup.retrofit2:retrofit:2.6.2'
     implementation 'com.squareup.retrofit2:converter-gson:2.6.2'
     implementation 'com.squareup.retrofit2:adapter-rxjava:2.6.2'
