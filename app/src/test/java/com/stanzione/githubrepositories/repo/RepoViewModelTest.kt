@@ -2,6 +2,7 @@ package com.stanzione.githubrepositories.repo
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.stanzione.githubrepositories.R
+import com.stanzione.githubrepositories.error.NoCacheError
 import com.stanzione.githubrepositories.model.Owner
 import com.stanzione.githubrepositories.model.Repo
 import com.stanzione.githubrepositories.model.RepoResponse
@@ -27,6 +28,9 @@ class RepoViewModelTest {
 
     @Mock
     lateinit var mockRepoRepository: RepoRepository
+
+    @Mock
+    lateinit var mockLocalRepository: RepoRepository
 
     @Mock
     lateinit var mockRepoMapper: RepoMapper
@@ -90,11 +94,12 @@ class RepoViewModelTest {
     @Before
     fun setUp() {
         MockitoAnnotations.initMocks(this)
-        viewModel = RepoViewModel(mockRepoRepository, mockRepoMapper)
+        viewModel = RepoViewModel(mockRepoRepository, mockLocalRepository, mockRepoMapper)
     }
 
     @Test
-    fun `given model with network error, when get repositories, show network error message`() {
+    fun `given no cache and model with network error, when get repositories, show network error message`() {
+        `when`(mockLocalRepository.getRepositories()).thenReturn(Single.error(NoCacheError()))
         `when`(mockRepoRepository.getRepositories()).thenReturn(Single.error(IOException()))
 
         viewModel.getRepositories()
@@ -104,11 +109,13 @@ class RepoViewModelTest {
         assertNull(viewModel.viewState.value?.repoList)
 
         verify(mockRepoRepository, times(1)).getRepositories()
-        verifyNoMoreInteractions(mockRepoRepository, mockRepoMapper)
+        verify(mockLocalRepository, times(1)).getRepositories()
+        verifyNoMoreInteractions(mockRepoRepository, mockLocalRepository, mockRepoMapper)
     }
 
     @Test
-    fun `given model with general error, when get repositories, show general error message`() {
+    fun `given no cache and model with general error, when get repositories, show general error message`() {
+        `when`(mockLocalRepository.getRepositories()).thenReturn(Single.error(NoCacheError()))
         `when`(mockRepoRepository.getRepositories()).thenReturn(Single.error(Exception()))
 
         viewModel.getRepositories()
@@ -118,11 +125,13 @@ class RepoViewModelTest {
         assertNull(viewModel.viewState.value?.repoList)
 
         verify(mockRepoRepository, times(1)).getRepositories()
-        verifyNoMoreInteractions(mockRepoRepository, mockRepoMapper)
+        verify(mockLocalRepository, times(1)).getRepositories()
+        verifyNoMoreInteractions(mockRepoRepository, mockLocalRepository, mockRepoMapper)
     }
 
     @Test
-    fun `given model with repo list and map done, when get repositories, show repo list`() {
+    fun `given no cache and model with repo list and map done, when get repositories, show repo list`() {
+        `when`(mockLocalRepository.getRepositories()).thenReturn(Single.error(NoCacheError()))
         `when`(mockRepoRepository.getRepositories()).thenReturn(Single.just(repoResponse))
         `when`(mockRepoMapper.transform(repoResponse.repoList)).thenReturn(listOf())
 
@@ -133,8 +142,26 @@ class RepoViewModelTest {
         assertNotNull(viewModel.viewState.value?.repoList)
 
         verify(mockRepoRepository, times(1)).getRepositories()
+        verify(mockLocalRepository, times(1)).getRepositories()
+        verify(mockLocalRepository, times(1)).saveRepositories(repoResponse)
         verify(mockRepoMapper, times(1)).transform(repoResponse.repoList)
-        verifyNoMoreInteractions(mockRepoRepository, mockRepoMapper)
+        verifyNoMoreInteractions(mockRepoRepository, mockLocalRepository, mockRepoMapper)
+    }
+
+    @Test
+    fun `given with cache and map done, when get repositories, show repo list`() {
+        `when`(mockLocalRepository.getRepositories()).thenReturn(Single.just(repoResponse))
+        `when`(mockRepoMapper.transform(repoResponse.repoList)).thenReturn(listOf())
+
+        viewModel.getRepositories()
+
+        assertEquals(false, viewModel.viewState.value?.isLoading)
+        assertNull(viewModel.viewState.value?.errorMessage)
+        assertNotNull(viewModel.viewState.value?.repoList)
+
+        verify(mockLocalRepository, times(1)).getRepositories()
+        verify(mockRepoMapper, times(1)).transform(repoResponse.repoList)
+        verifyNoMoreInteractions(mockRepoRepository, mockLocalRepository, mockRepoMapper)
     }
 
 }

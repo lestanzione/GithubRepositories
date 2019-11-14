@@ -2,6 +2,7 @@ package com.stanzione.githubrepositories
 
 import android.app.Application
 import androidx.annotation.VisibleForTesting
+import com.stanzione.githubrepositories.di.AndroidModule
 import com.stanzione.githubrepositories.di.ApplicationComponent
 import com.stanzione.githubrepositories.di.DaggerApplicationComponent
 import com.stanzione.githubrepositories.di.NetModule
@@ -15,6 +16,7 @@ class GithubRepoApp : Application() {
         INSTANCE = this
 
         applicationComponent = DaggerApplicationComponent.builder()
+            .androidModule(AndroidModule(applicationContext))
             .netModule(NetModule())
             .build()
     }
