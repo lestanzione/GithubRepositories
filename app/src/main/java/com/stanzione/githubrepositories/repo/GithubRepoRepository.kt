@@ -10,4 +10,6 @@ class GithubRepoRepository(private val api: GithubApi) : RepoRepository {
         return api.getRepositories()
     }
 
+    override fun saveRepositories(repoResponse: RepoResponse) {}
+
 }

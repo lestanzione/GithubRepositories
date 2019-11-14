@@ -42,7 +42,11 @@ class RepoActivity : AppCompatActivity() {
     }
 
     private fun setupViewModel() {
-        repoViewModelFactory = RepoViewModelFactory(Injector.get().repoRepository(), Injector.get().repoMapper())
+        repoViewModelFactory = RepoViewModelFactory(
+            Injector.get().repoRepository(),
+            Injector.get().localRepoRepository(),
+            Injector.get().repoMapper()
+        )
         repoViewModel = ViewModelProviders.of(this, repoViewModelFactory).get(RepoViewModel::class.java)
     }
 

@@ -4,17 +4,18 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.stanzione.githubrepositories.R
-import com.stanzione.githubrepositories.model.RepoResponse
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import java.io.IOException
 import com.jakewharton.retrofit2.adapter.rxjava2.HttpException
+import com.stanzione.githubrepositories.error.NoCacheError
 import com.stanzione.githubrepositories.model.domain.RepoDomain
 
 
 class RepoViewModel(
     private val repoRepository: RepoRepository,
+    private val localRepoRepository: RepoRepository,
     private val repoMapper: RepoMapper
 ) : ViewModel() {
 
@@ -33,7 +34,18 @@ class RepoViewModel(
     fun getRepositories() {
 
         compositeDisposable.add(
-            repoRepository.getRepositories()
+            localRepoRepository.getRepositories().
+                onErrorResumeNext {
+                    if (it is NoCacheError) {
+                        repoRepository.getRepositories()
+                            .map { repoResponse ->
+                                localRepoRepository.saveRepositories(repoResponse)
+                                repoResponse
+                            }
+                    } else {
+                        throw it
+                    }
+                }
                 .map {
                     return@map repoMapper.transform(it.repoList)
                 }
