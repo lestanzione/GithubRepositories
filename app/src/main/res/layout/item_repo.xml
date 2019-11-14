@@ -9,10 +9,13 @@
 
     <TextView
             android:id="@+id/item_repo_name"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textSize="16sp"
+            android:layout_marginEnd="@dimen/item_repo_default_horizontal_margin"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/item_repo_owner_image"
             tools:text="Repo name"/>
 
     <ImageView

@@ -6,10 +6,10 @@ import com.stanzione.githubrepositories.api.GithubApi
 
 class GithubRepoRepository(private val api: GithubApi) : RepoRepository {
 
-    override fun getRepositories(): Single<RepoResponse> {
-        return api.getRepositories()
+    override fun getRepositories(page: Int): Single<RepoResponse> {
+        return api.getRepositories(page)
     }
 
-    override fun saveRepositories(repoResponse: RepoResponse) {}
+    override fun saveRepositories(page: Int, repoResponse: RepoResponse) {}
 
 }

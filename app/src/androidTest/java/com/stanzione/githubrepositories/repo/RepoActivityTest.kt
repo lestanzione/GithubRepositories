@@ -20,6 +20,7 @@ import org.junit.Rule
 import org.junit.Test
 import okio.Okio
 import androidx.test.InstrumentationRegistry
+import androidx.test.espresso.action.ViewActions.click
 import com.stanzione.githubrepositories.RecyclerViewItemCountAssertion
 import com.stanzione.githubrepositories.di.AndroidModule
 
@@ -118,6 +119,34 @@ class RepoActivityTest {
         )
 
         activityRule.launchActivity(Intent())
+
+        Thread.sleep(1000)
+
+        onView(withId(R.id.repo_recycler_view))
+            .check(RecyclerViewItemCountAssertion(3))
+    }
+
+    @Test
+    fun givenFirstRequestErrorAndSecondRequestOk_WhenGetRepositories_ShowRepoList() {
+
+        println("server: $server")
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(500)
+        )
+
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setBody(readFile("mock_repo_result.json"))
+        )
+
+        activityRule.launchActivity(Intent())
+
+        Thread.sleep(1000)
+
+        onView(allOf(withId(com.google.android.material.R.id.snackbar_action)))
+            .perform(click())
 
         Thread.sleep(1000)
 
