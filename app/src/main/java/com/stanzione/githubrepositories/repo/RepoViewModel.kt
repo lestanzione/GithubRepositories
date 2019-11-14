@@ -21,6 +21,8 @@ class RepoViewModel(
 
     private val compositeDisposable = CompositeDisposable()
 
+    private val repoList = mutableListOf<RepoDomain>()
+
     private val _viewState = MutableLiveData<RepoViewState>()
     val viewState: LiveData<RepoViewState>
         get() = _viewState
@@ -31,15 +33,15 @@ class RepoViewModel(
 
     private fun currentViewState(): RepoViewState = _viewState.value!!
 
-    fun getRepositories() {
+    fun getRepositories(page: Int) {
 
         compositeDisposable.add(
-            localRepoRepository.getRepositories().
+            localRepoRepository.getRepositories(page).
                 onErrorResumeNext {
                     if (it is NoCacheError) {
-                        repoRepository.getRepositories()
+                        repoRepository.getRepositories(page)
                             .map { repoResponse ->
-                                localRepoRepository.saveRepositories(repoResponse)
+                                localRepoRepository.saveRepositories(page, repoResponse)
                                 repoResponse
                             }
                     } else {
@@ -60,7 +62,8 @@ class RepoViewModel(
     }
 
     private fun onRepoDomainListReceived(repoDomainList: List<RepoDomain>) {
-        _viewState.value = currentViewState().copy(isLoading = false, repoList = repoDomainList)
+        repoList.addAll(repoDomainList)
+        _viewState.value = currentViewState().copy(isLoading = false, errorMessage = null, repoList = repoList)
     }
 
     private fun onRepoResponseError(throwable: Throwable) {
@@ -76,7 +79,7 @@ class RepoViewModel(
             }
         }
 
-        _viewState.value = currentViewState().copy(isLoading = false, errorMessage = messageRes)
+        _viewState.value = currentViewState().copy(isLoading = false, errorMessage = messageRes, repoList = null)
     }
 
     override fun onCleared() {

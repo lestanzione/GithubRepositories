@@ -3,4 +3,6 @@
     <string name="message_general_error">We found an error. Please try again later.</string>
     <string name="message_network_error">A network error has occurred. Check your Internet connection and try again later.</string>
     <string name="message_no_more_data">There is no more data to load.</string>
+    <string name="message_try_again">Tentar novamente</string>
+    <string name="title_repositories">Repositories</string>
 </resources>

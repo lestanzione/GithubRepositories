@@ -38,6 +38,7 @@ class RepoViewModelTest {
     private lateinit var viewModel: RepoViewModel
 
     private var repoResponse: RepoResponse
+    private var page = 1
 
     init {
         val repoList = mutableListOf<Repo>()
@@ -99,67 +100,67 @@ class RepoViewModelTest {
 
     @Test
     fun `given no cache and model with network error, when get repositories, show network error message`() {
-        `when`(mockLocalRepository.getRepositories()).thenReturn(Single.error(NoCacheError()))
-        `when`(mockRepoRepository.getRepositories()).thenReturn(Single.error(IOException()))
+        `when`(mockLocalRepository.getRepositories(page)).thenReturn(Single.error(NoCacheError()))
+        `when`(mockRepoRepository.getRepositories(page)).thenReturn(Single.error(IOException()))
 
-        viewModel.getRepositories()
+        viewModel.getRepositories(page)
 
         assertEquals(false, viewModel.viewState.value?.isLoading)
         assertEquals(R.string.message_network_error, viewModel.viewState.value?.errorMessage)
         assertNull(viewModel.viewState.value?.repoList)
 
-        verify(mockRepoRepository, times(1)).getRepositories()
-        verify(mockLocalRepository, times(1)).getRepositories()
+        verify(mockRepoRepository, times(1)).getRepositories(page)
+        verify(mockLocalRepository, times(1)).getRepositories(page)
         verifyNoMoreInteractions(mockRepoRepository, mockLocalRepository, mockRepoMapper)
     }
 
     @Test
     fun `given no cache and model with general error, when get repositories, show general error message`() {
-        `when`(mockLocalRepository.getRepositories()).thenReturn(Single.error(NoCacheError()))
-        `when`(mockRepoRepository.getRepositories()).thenReturn(Single.error(Exception()))
+        `when`(mockLocalRepository.getRepositories(page)).thenReturn(Single.error(NoCacheError()))
+        `when`(mockRepoRepository.getRepositories(page)).thenReturn(Single.error(Exception()))
 
-        viewModel.getRepositories()
+        viewModel.getRepositories(page)
 
         assertEquals(false, viewModel.viewState.value?.isLoading)
         assertEquals(R.string.message_general_error, viewModel.viewState.value?.errorMessage)
         assertNull(viewModel.viewState.value?.repoList)
 
-        verify(mockRepoRepository, times(1)).getRepositories()
-        verify(mockLocalRepository, times(1)).getRepositories()
+        verify(mockRepoRepository, times(1)).getRepositories(page)
+        verify(mockLocalRepository, times(1)).getRepositories(page)
         verifyNoMoreInteractions(mockRepoRepository, mockLocalRepository, mockRepoMapper)
     }
 
     @Test
     fun `given no cache and model with repo list and map done, when get repositories, show repo list`() {
-        `when`(mockLocalRepository.getRepositories()).thenReturn(Single.error(NoCacheError()))
-        `when`(mockRepoRepository.getRepositories()).thenReturn(Single.just(repoResponse))
+        `when`(mockLocalRepository.getRepositories(page)).thenReturn(Single.error(NoCacheError()))
+        `when`(mockRepoRepository.getRepositories(page)).thenReturn(Single.just(repoResponse))
         `when`(mockRepoMapper.transform(repoResponse.repoList)).thenReturn(listOf())
 
-        viewModel.getRepositories()
+        viewModel.getRepositories(page)
 
         assertEquals(false, viewModel.viewState.value?.isLoading)
         assertNull(viewModel.viewState.value?.errorMessage)
         assertNotNull(viewModel.viewState.value?.repoList)
 
-        verify(mockRepoRepository, times(1)).getRepositories()
-        verify(mockLocalRepository, times(1)).getRepositories()
-        verify(mockLocalRepository, times(1)).saveRepositories(repoResponse)
+        verify(mockRepoRepository, times(1)).getRepositories(page)
+        verify(mockLocalRepository, times(1)).getRepositories(page)
+        verify(mockLocalRepository, times(1)).saveRepositories(page, repoResponse)
         verify(mockRepoMapper, times(1)).transform(repoResponse.repoList)
         verifyNoMoreInteractions(mockRepoRepository, mockLocalRepository, mockRepoMapper)
     }
 
     @Test
     fun `given with cache and map done, when get repositories, show repo list`() {
-        `when`(mockLocalRepository.getRepositories()).thenReturn(Single.just(repoResponse))
+        `when`(mockLocalRepository.getRepositories(page)).thenReturn(Single.just(repoResponse))
         `when`(mockRepoMapper.transform(repoResponse.repoList)).thenReturn(listOf())
 
-        viewModel.getRepositories()
+        viewModel.getRepositories(page)
 
         assertEquals(false, viewModel.viewState.value?.isLoading)
         assertNull(viewModel.viewState.value?.errorMessage)
         assertNotNull(viewModel.viewState.value?.repoList)
 
-        verify(mockLocalRepository, times(1)).getRepositories()
+        verify(mockLocalRepository, times(1)).getRepositories(page)
         verify(mockRepoMapper, times(1)).transform(repoResponse.repoList)
         verifyNoMoreInteractions(mockRepoRepository, mockLocalRepository, mockRepoMapper)
     }

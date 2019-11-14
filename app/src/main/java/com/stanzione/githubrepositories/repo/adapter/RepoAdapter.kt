@@ -25,4 +25,9 @@ class RepoAdapter(private val repoList: MutableList<RepoDomain>) : RecyclerView.
         this.repoList.addAll(repoList)
         notifyDataSetChanged()
     }
+
+    fun clearItems() {
+        this.repoList.clear()
+        notifyDataSetChanged()
+    }
 }
